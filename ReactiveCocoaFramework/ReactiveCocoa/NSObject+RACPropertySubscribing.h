@@ -49,6 +49,19 @@
 #define RACObserve(TARGET, KEYPATH) \
     [(id)(TARGET) rac_valuesForKeyPath:@keypath(TARGET, KEYPATH) observer:self]
 
+/// Creates a signal which observes `KEYPATH` on `TARGET` for changes.
+///
+/// This is similar to RACObserve, except it only sends a next if the value
+/// has actually changed since the last time it was set. RACObserve will send
+/// a next even if the value hasn't actually changed, but the setter was
+/// invoked with the current value.
+///
+/// Returns a signal which sends the current value of the key path on
+/// subscription, then sends the new value every time it changes, and sends
+/// completed if self or observer is deallocated.
+#define RACObserveChanges(TARGET, KEYPATH) \
+    [(id)(TARGET) rac_changedValuesForKeyPath:@keypath(TARGET, KEYPATH) observer:self]
+
 @class RACDisposable;
 @class RACSignal;
 
@@ -63,6 +76,17 @@
 /// Returns a signal that immediately sends the receiver's current value at the
 /// given keypath, then any changes thereafter.
 - (RACSignal *)rac_valuesForKeyPath:(NSString *)keyPath observer:(NSObject *)observer;
+
+/// Creates a signal to observe the value at the given key path and only send values
+/// if the value changes.
+///
+/// The initial value is sent on subscription, the subsequent values are sent
+/// from whichever thread the change occured on, even if it doesn't have a valid
+/// scheduler.
+///
+/// Returns a signal that immediately sends the receiver's current value at the
+/// given keypath, then any changes thereafter.
+- (RACSignal *)rac_changedValuesForKeyPath:(NSString *)keyPath observer:(NSObject *)observer;
 
 /// Creates a signal to observe the changes of the given key path.
 ///

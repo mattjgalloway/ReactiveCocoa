@@ -26,6 +26,35 @@ describe(@"-rac_valuesForKeyPath:observer:", ^{
 
 });
 
+describe(@"-rac_changedValuesForKeyPath:observer:", ^{
+	id (^setupBlock)(id, id, id) = ^(RACTestObject *object, NSString *keyPath, id observer) {
+		return [object rac_changedValuesForKeyPath:keyPath observer:observer];
+	};
+
+	itShouldBehaveLike(RACPropertySubscribingExamples, ^{
+		return @{ RACPropertySubscribingExamplesSetupBlock: setupBlock };
+	});
+
+	it(@"should only send changed values", ^{
+		RACTestObject *object = [[RACTestObject alloc] init];
+		RACSignal *signal = setupBlock(object, @keypath(object, objectValue), self);
+		NSMutableArray *values = [NSMutableArray array];
+
+		object.objectValue = @0;
+		[signal subscribeNext:^(id x) {
+			[values addObject:x];
+		}];
+
+		expect(values).to.equal((@[ @0 ]));
+
+		object.objectValue = @1;
+		expect(values).to.equal((@[ @0, @1 ]));
+
+		object.objectValue = @1;
+		expect(values).to.equal((@[ @0, @1 ]));
+	});
+});
+
 describe(@"+rac_signalWithChangesFor:keyPath:options:observer:", ^{
 	describe(@"KVO options argument", ^{
 		__block RACTestObject *object;

@@ -30,6 +30,21 @@
 		setNameWithFormat:@"RACObserve(%@, %@)", self.rac_description, keyPath];
 }
 
+- (RACSignal *)rac_changedValuesForKeyPath:(NSString *)keyPath observer:(NSObject *)observer {
+	return [[[[self
+		rac_valuesAndChangesForKeyPath:keyPath options:(NSKeyValueObservingOptionOld | NSKeyValueObservingOptionNew | NSKeyValueObservingOptionInitial) observer:observer]
+		filter:^BOOL(RACTuple *next) {
+			NSDictionary *change = next.second;
+			id new = change[NSKeyValueChangeNewKey];
+			id old = change[NSKeyValueChangeOldKey];
+			return !old || ![new isEqual:old];
+		}]
+		reduceEach:^(id value, NSDictionary *change) {
+			return value;
+		}]
+		setNameWithFormat:@"RACObserveChanges(%@, %@)", self.rac_description, keyPath];
+}
+
 - (RACSignal *)rac_valuesAndChangesForKeyPath:(NSString *)keyPath options:(NSKeyValueObservingOptions)options observer:(NSObject *)observer {
 	keyPath = [keyPath copy];
 
